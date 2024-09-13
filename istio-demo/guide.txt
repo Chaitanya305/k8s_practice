@@ -1,0 +1,125 @@
+1] installing istio 
+
+curl -L https://istio.io/downloadIstio | sh -
+
+cd istio-1.23.0
+
+export PATH=$PWD/bin:$PATH
+
+istioctl install -f samples/bookinfo/demo-profile-no-gateways.yaml -y
+
+kubectl label namespace default istio-injection=enabled
+
+Installing gateway API
+
+kubectl get crd gateways.gateway.networking.k8s.io &> /dev/null || \
+{ kubectl kustomize "github.com/kubernetes-sigs/gateway-api/config/crd?ref=v1.1.0" | kubectl apply -f -; }
+
+samplke application 
+
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.23/samples/bookinfo/platform/kube/bookinfo.yaml -n istio
+
+chnage productpage service type to NodePort 
+
+kubctl edit svc productpage -n istio 
+
+Now accesss application on nodeip:NodePort
+--------------------------------------------------------------MTLS concept-------------------------------------
+
+Apply below manifest to strictly use mtls for east-west connection (i.e microservices in between connection)
+
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: mtls-mode
+  namespace: istio
+spec:
+  mtls:
+    mode: STRICT
+
+after applying this you wont be able to acces it on nodeport becouse we were accesing its microservice productpage, and we dont have valid tls certificate to acces it, 
+Try to acces it form any other pod from the same namespace where istio injection is enabled you will be able to acces the services., 
+form any other namespace also you wont be able to acces it.
+
+------------------------------------------------------------------------------
+Open the application to outside traffic:
+
+
+Create a Kubernetes Gateway for the Bookinfo application:
+
+#kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.23/samples/bookinfo/gateway-api/bookinfo-gateway.yaml -n istio
+
+#kubectl annotate gateway bookinfo-gateway networking.istio.io/service-type=NodePort --namespace=istio
+
+acces application on nodip:<port_of_gateway_service>
+this is way we can still acces application even after mtls is enable gateway is somewhat simillar to ingress only.
+
+
+-------------------------------
+
+How to manage traffic using servicVirtualService and DestinationRule
+
+#Virtual service is use to manage the traffic managemrnt how traffic should flow or route on path base host base routing, 
+when you want advance routing like canary and all you need to define destinationRule kind so that we can assign subset for services.
+subset is like lable assign to pod to configure when traffic routed to subset having label v1 then traffic should go to pod with label v1.
+
+
+eg VirtualService is
+
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: my-virtualservice
+spec:
+  hosts:
+    - my-service
+  http:
+    - route:
+        - destination:
+            host: my-service
+            subset: v1
+          weight: 80
+        - destination:
+            host: my-service
+            subset: v2
+          weight: 20
+
+Destination rule for this is
+
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: my-destinationrule
+spec:
+  host: my-service
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+    - name: v2
+      labels:
+        version: v2
+ 
+
+i.e pod in target of my-service with label version: v1 will be having subset name v1 like this and the you can use this subset names in virtualService.
+----------------------
+
+To apply kiali for visula reprentation of traffic in istio 
+
+#cd /home/chaitanya/istio-1.23.0/samples/addons
+#kubectl apply -f kiali.yaml
+#kubectl edit svc --> make it nodeport 
+Now acces dashboard of kiali 
+-----------------------
+to start metric server 
+
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml    -- command to install metric server.
+
+kubectl edit deployment 
+add --kubelet-insecure-tls in arg
+
+------------------- 
+
+
+ 
+

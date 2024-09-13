@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          command:   # this will overwrite the default entrypoint of image works same as ENTRYPOINT in docker.
+           - touch
+           - /home/file1.txt
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: 200M
+              cpu: 100m
+            limits:
+              memory: 500M
+              cpu: 200m
+        - name: nginx2
+          image: nginx
+          command:   # this is defult entry point command run by nginx image i just want  it to run as sh interprator so tha && will work
+            - /bin/sh
+            - -c
+            - /docker-entrypoint.sh
+          args:   # this will append to entry point works as cmd in docker.
+           - "&&"
+           - touch 
+           - /home/hello.txt
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: 200M
+              cpu: 100m
+            limits:
+              memory: 500M
+              cpu: 200m
+    
+      
+
+    

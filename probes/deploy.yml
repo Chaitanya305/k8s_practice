@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: punctuations
+  labels:
+    app: punctuations
+spec:
+  selector:
+    matchLabels:
+      app: punctuations
+  template:
+    metadata:
+      labels:
+        app: punctuations
+    spec:
+      containers:
+        - name: punctuations
+          image: chaitanya305/punctuation_image:2
+          ports:
+            - containerPort: 8000
+          startupProbe:
+            exec:
+              command:
+                - echo
+                - hello
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            failureThreshold: 2
+          livenessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            failureThreshold: 2
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            failureThreshold: 2
+          resources:
+            requests:
+              memory: 200M
+              cpu: 100m
+            limits:
+              memory: 500M
+              cpu: 200m
+        
+
+    

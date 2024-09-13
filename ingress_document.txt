@@ -1,0 +1,237 @@
+TO download ingress controller on bare matel :  https://kubernetes.github.io/ingress-nginx/deploy/#bare-metal-clusters
+
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/baremetal/deploy.yaml
+
+2] create deployment and svc 
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-deployment
+  labels:
+    app: demo
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: demo
+  template:
+    metadata:
+      labels:
+        app: demo
+    spec:
+      containers:
+      - name: demo-container
+        image: chaitanya305/demo-image:byme
+        ports:
+        - containerPort: 80
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-sv
+spec:
+#  type: NodePort
+  selector:
+    app: demo
+  ports:
+    - port: 80
+      # By default and for convenience, the `targetPort` is set to
+      # the same value as the `port` field.
+      targetPort: 80
+      # Optional field
+      # By default and for convenience, the Kubernetes control plane
+      # will allocate a port from a range (default: 30000-32767)
+#      nodePort: 30007
+
+
+
+3] Now deploy ingress resource for ingress rule 
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - host:
+    http:
+      paths:
+      - path: /home
+        pathType: Prefix
+        backend:
+          service:
+            name: demo-sv
+            port:
+              number: 80
+
+4] Now to acces you pod
+
+as we used Node port type service for nginx controller as we are in bare metal 
+so we will use any NodeIp:<nodeport>/path    
+
+to get node port -- kubetcl get svc -n ingress-nginx     - to get nodeport exposed for outside by ingress
+
+curl foo.bar.com:32392/home    --- this way you will acces your pod 
+
+
+5] in local cluster you need to update hosts file
+
+echo nodeIP foo.bar.com >> /etc/hosts
+
+6]FYI
+
+controlplane $ kubectl describe ing demo-ingress
+Name:             demo-ingress
+Labels:           <none>
+Namespace:        default
+Address:          172.30.2.2
+Ingress Class:    nginx
+Default backend:  <default>
+Rules:
+  Host         Path  Backends
+  ----         ----  --------
+  foo.bar.com  
+               /home   demo-sv:80 (192.168.0.4:80,192.168.1.4:80,192.168.1.5:80)
+Annotations:   nginx.ingress.kubernetes.io/rewrite-target: /
+Events:
+  Type    Reason  Age                From                      Message
+  ----    ------  ----               ----                      -------
+  Normal  Sync    18m (x3 over 26m)  nginx-ingress-controller  Scheduled for sync
+controlplane $ 
+
+
+------------
+
+we can also use ClusterIP service, chnage service type of nginx-controller to ClusterIP, and also all other pods services too ClusterIP , then dont use nodeip for addinf in /etc/host
+use clusterIP and add that one 
+cluserIP of ingress-controller service add that one it /etc/host file.
+
+
+
+---------------------------------------
+
+new config file to test:-  
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: good-morning
+  labels:
+    app: good-morning
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: good-morning
+  template:
+    metadata:
+      labels:
+        app: good-morning
+    spec:
+      containers:
+      - name: good-morning
+        image: chaitanya305/good-morning
+        ports:
+        - containerPort: 80
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: good-morning-svc
+spec:
+  selector:
+    app: good-morning
+  ports:
+    - port: 80
+      targetPort: 80
+
+
+
+------------------------
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: good-night
+  labels:
+    app: good-night
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: good-night
+  template:
+    metadata:
+      labels:
+        app: good-night
+    spec:
+      containers:
+      - name: good-night
+        image: chaitanya305/good-night
+        ports:
+        - containerPort: 80
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: good-night-svc
+spec:
+  selector:
+    app: good-night
+  ports:
+    - port: 81
+      targetPort: 80
+
+
+
+
+--------------------------
+
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-ingress
+  #namespace: dataflow-studio
+  annotations:
+   kubernetes.io/ingress.class: "nginx"
+
+spec:
+  ingressClassName: nginx
+  rules:
+   - host: demo.com
+     http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: good-morning-svc
+            port:
+              number: 80
+      - path: /good-night
+        pathType: Prefix
+        backend:
+          service:
+            name: good-night-svc
+            port:
+              number: 81
+      - path: /good-morning
+        pathType: Prefix
+        backend:
+          service:
+            name: good-morning-svc
+            port:
+              number: 80

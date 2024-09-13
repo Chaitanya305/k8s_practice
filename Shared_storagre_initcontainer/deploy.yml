@@ -1,0 +1,54 @@
+#usually we are doing this with init container not sidecar container i did it for demo purpose
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          command:   # this will overwrite the default entrypoint of image
+           - touch
+           - /home/file1.txt
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: 200M
+              cpu: 100m
+            limits:
+              memory: 500M
+              cpu: 200m
+          volumeMounts:
+            - name: demo-vm
+              mountPath: /home
+        - name: nginx2
+          image: nginx
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: 200M
+              cpu: 100m
+            limits:
+              memory: 500M
+              cpu: 200m
+          volumeMounts:
+            - name: demo-vm
+              mountPath: /home
+      volumes:
+        - name: demo-vm
+          emptyDir: {}    # volume life is till the pod is running 
+
+    

@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: demo-lr
+  namespace: demo-ns
+spec:
+  limits:
+    - type: Container
+      default:  #default limit set
+        cpu: 400m
+        memory: 500M
+      defaultRequest:
+        cpu: 200m
+        memory: 300M
+      max:   # max limit or request container can have
+        cpu: 800m
+        memory: 1G
+      min:
+        cpu: 200m
+        memory: 200M
+      maxLimitRequestRatio:  #max ratio between request and limit  eg if 200M is request then max limit can be 800M can tobe mor than this 4 time as 4 is the ratio set.
+        cpu: 4
+        memory: 4
+    - type: Pod  # all the container inide pod together can request for more than this
+      max:
+        cpu: 1
+        memory: 2G
+    - type: PersistentVolumeClaim   # in this ns pvc need to ask min 100M and can ask for more than 2G
+      max:
+        storage: 2G
+      min:
+        storage : 100M

@@ -1,0 +1,110 @@
+Create below resources
+
+apiVersion: apps/v1
+metadata:
+  name: good-night
+  labels:
+    app: good-night
+  namespace: gn
+kind: Deployment
+spec:
+  selector:
+    matchLabels:
+      app: good-night
+  template:
+    metadata:
+      labels:
+        app: good-night
+    spec:
+      containers:
+        - name: good-night
+          image: chaitanya305/good-night
+          ports:
+            - containerPort: 80
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: good-night-svc
+  namespace: gn
+spec:
+  selector:
+    app: good-night
+  ports:
+    - port: 81
+      targetPort: 80
+
+
+----------------------------
+
+
+apiVersion: apps/v1
+metadata:
+  name: good-night
+  labels:
+    app: good-night
+  namespace: gn
+kind: Deployment
+spec:
+  selector:
+    matchLabels:
+      app: good-night
+  template:
+    metadata:
+      labels:
+        app: good-night
+    spec:
+      containers:
+        - name: good-night
+          image: chaitanya305/good-night
+          ports:
+            - containerPort: 80
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: good-night-svc
+  namespace: gn
+spec:
+  selector:
+    app: good-night
+  ports:
+    - port: 81
+      targetPort: 80
+
+
+
+-----------
+
+now try to connect to each others 
+
+
+kubectl exec -ti good-morning-5df7cf4f4d-2qf4q sh -n gm
+apt update 
+apt install curl 
+od-morning-5df7cf4f4d-2qf4q
+# curl
+curl: try 'curl --help' or 'curl --manual' for more information
+# curl good-night-svc:81
+curl: (6) Could not resolve host: good-night-svc
+
+
+when tried to connect with svc name it shown error.
+
+# curl good-night-svc.gn.svc.cluster.local:81
+<h1> good Night sweet dreams </h1>
+
+when used fully qualified name it worked 
+
+
+NOTE :
+
+in same namespace pod can cumminicate each others directly by service name associated to them 
+
+if pods in diff namespace then they cant cumminicate each others directly by service name associated to them, they need to use below convention.
+
+curl <service-name>.<namespace>.svc.cluster.local:<port>

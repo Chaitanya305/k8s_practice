@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: demo_rq
+  namespace: demo-ns
+spec:
+  hard:  #Lists the maximum resources that can be consumed within the namespace
+    #compute resource
+    cpu: 500m   #Same as requests.cpu, sum of request cpu of pods in this ns cannot exceed this value.
+    limits.cpu: 1 #Across all pods in a non-terminal state, the sum of CPU limits cannot exceed this value.
+    memory: 1G
+    limits.memory: 2G
+    #storage resources
+    requests.storage: 3G   #some of all pvc in ns cant claim for more than this value
+    #number resource it can create
+    pods: 3 # cant have more than 3 pod in this ns 
+    configmaps: 2
+    #deployments: 2  we can define deployment, statefulsets and DaemonSets
+    services: 3

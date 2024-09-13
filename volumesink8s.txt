@@ -1,0 +1,142 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: nginx-vm
+              mountPath: /home
+      volumes:
+        - name: nginx-vm
+          persistentVolumeClaim:
+            claimName: nginx-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-svc
+spec:
+  selector:
+    app: nginx
+  ports:
+    - port: 80
+      targetPort: 80
+
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nginx-pv
+spec:
+  capacity:
+    storage: 500Mi
+  storageClassName: ""
+  volumeMode: Filesystem
+  accessModes:
+    - ReadOnlyMany
+  persistentVolumeReclaimPolicy: Recycle
+  hostPath:
+    path: /root/demo  
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nginx-pvc
+spec:
+  storageClassName: ""
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 300Mi
+
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name:  aws-secret
+  namespace: kube-system
+type: Opaque
+data:
+  key_id: QUtJQVkzWFFTQVAzTVlZQldXT0M=
+  access_key: M2VwdDR6WDY1NzNKQkUvQzZtRWVGR2ltdytTYi9JSlgxaWdtcUJaTA==
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ebs-sc
+provisioner: ebs.csi.aws.com
+parameters:
+  type: gp2
+volumeBindingMode: WaitForFirstConsumer
+
+
+----------------------
+
+How to prvosision pv dynamically in local machines 
+
+kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
+
+
+this will create storage class called local-path use it to get local pv dynamiucaly 
+
+manifest below:
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  containers:
+    - name: nginx
+      image: nginx
+      ports:
+        - containerPort: 80
+      volumeMounts:
+        - name: demo-vm
+          mountPath: /home
+  volumes:
+    - name: demo-vm
+      persistentVolumeClaim:
+        claimName: local-pvc
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: local-pvc
+spec:
+  resources:
+    requests:
+      storage: 300Mi
+  storageClassName: local-path
+  accessModes:
+    - ReadWriteOnce
+
+
+$kubectl describe cm local-path-config -n local-path-storage
+To check the path which storage pv is using in local machine.
+
+  
