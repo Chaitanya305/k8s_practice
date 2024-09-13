@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: demo-stfs
+  labels:
+    app: mysql
+spec:
+  replicas: 3
+  minReadySeconds: 3 #default is 0, optional filed, min time for which pod should be running then only consider as ready, and next pod will created.
+  serviceName: mysql-hsvc  # hedless service name
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      terminationGracePeriodSeconds: 30 #default is 30, optional filed, time to wait before forcefully terminationg container after pod is deleted
+      containers:
+        - name: mysql
+          image: mysql
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-db-secrets
+                  key: MYSQL_ROOT_PASSWORD
+          ports:
+            - containerPort: 3306
+          resources:
+            requests:
+              memory: 600M
+              cpu: 200m
+            limits:
+              memory: 1G
+              cpu: 500m
+          volumeMounts:
+            - name: demo-vm
+              mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+    - metadata:
+        name: demo-vm
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: local-path
+        resources:
+          requests:
+            storage: 500M
+           

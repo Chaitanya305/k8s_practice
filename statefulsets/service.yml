@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-hsvc
+spec:
+  selector:
+    app: mysql
+  ports:
+    - port: 3306
+      #targetPort: 3306 No target port for hedless svc, as it directly send traffic to single pod ip
+  clusterIP: None

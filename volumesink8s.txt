@@ -77,8 +77,8 @@ metadata:
   namespace: kube-system
 type: Opaque
 data:
-  key_id: QUtJQVkzWFFTQVAzTVlZQldXT0M=
-  access_key: M2VwdDR6WDY1NzNKQkUvQzZtRWVGR2ltdytTYi9JSlgxaWdtcUJaTA==
+  key_id: AWS_KEY_id
+  access_key: AWS_Secret_key
 ---
 apiVersion: storage.k8s.io/v1
 kind: StorageClass

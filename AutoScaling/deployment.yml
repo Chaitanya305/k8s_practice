@@ -2,17 +2,17 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx
-  labels:
+  labels:                 #Applies to: The Deployment or StatefulSet resource itself.
     app: nginx
 spec:
   replicas: 2
   selector:
-    matchLabels:
+    matchLabels:         # Applies to: The set of Pods that this Deployment or StatefulSet manages.
       app: nginx
   template:
     metadata:
-      labels:
-        app: nginx
+      labels: 
+        app: nginx     #this is use by service to discover the pod #Applies to: The pod template used to create the actual pods. These labels must match the selector labels defined in spec.selector.matchLabels.
     spec:
       containers:
         - name: nginx
