@@ -1,0 +1,12 @@
+calico controller:
+in k8s is use for networking in k8s cluster, how the ip should get assign to pods and all pods can comuunicate within the cluster. and also how the pods can communicate with each others
+even after in another nodes, and they shoukd have unique ip
+clico inforce the k8s networkpolicy to controll the traffic between the pods.
+
+canal : it is pod in k8s essential for combination of Flannel (for networking) and calico (for network policy nforcement) 
+
+CNI (container network interface) plugins :
+these are responsible for managing or routng traffic between nodes in k8s cluster, calico is also CNI plugins only.
+
+kube-proxy:- it something which is responsible for how svc will send traffic to it target pod, by using ip tabels etc.
+

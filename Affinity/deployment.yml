@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      #nodeName: controlplane  
+      #nodeSelector:
+        #name: controlplane   #first label the node using k label node node_name name=controlplane, to check k get node --show-labels
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: name
+                    operator: In    # in == any value present in list, NotIn, Exists= regardless of value labels is exist or not checks, DoesNotExist, Gt, Lt, 
+                    values: 
+                      - controlplane   # this should be label of node
+          # preferredDuringSchedulingIgnoredDuringExecution:
+          #   - weight: 1
+          #     preference:
+          #       matchExpressions:
+          #         - key: name
+          #           operator: In
+          #           values:
+          #             - controlplane     # this should be label of node
+          #   - weight: 50
+          #     preference:
+          #       matchExpressions:
+          #         - key: name
+          #           operator: In
+          #           values:
+          #             - node01        # this should be label of node
+        # podAffinity:             #pods to schedule together
+        #   requiredDuringSchedulingIgnoredDuringExecution:
+        #     - labelSelector:
+        #         matchExpressions:
+        #           - key: app
+        #             operator: In
+        #             values:                # labels value of pods that should shcedule together on same node
+        #             - nginx
+        #       topologyKey: kubernetes.io/hostname    #this is label at nodes
+        podAntiAffinity:   # pods to schedule aparts
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100    #how much wightage it should try to prefer.
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                  - key: app
+                    operator: In
+                    values:       # labels value of pods that should shcedule on differant nodes
+                    - nginx
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+            - containerPort: 80
+          

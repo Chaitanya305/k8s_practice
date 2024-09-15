@@ -9,3 +9,8 @@ spec:
     - port: 3306
       #targetPort: 3306 No target port for hedless svc, as it directly send traffic to single pod ip
   clusterIP: None
+
+
+#in headless service No loadbalancing, you can use service_name:port to resolve the pod but it will not do load balancing
+#but you can connect to specific pod using pod_name.svc_name.ns_name.svc.cluster.local
+#in normal svc you can resolve to specific pod using such dns name
