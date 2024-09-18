@@ -3,7 +3,7 @@ in k8s is use for networking in k8s cluster, how the ip should get assign to pod
 even after in another nodes, and they shoukd have unique ip
 clico inforce the k8s networkpolicy to controll the traffic between the pods.
 
-canal : it is pod in k8s essential for combination of Flannel (for networking) and calico (for network policy nforcement) 
+canal : it is pod in k8s essential for combination of Flannel (for networking using overlay network) and calico (for network policy nforcement) 
 
 CNI (container network interface) plugins :
 these are responsible for managing or routng traffic between nodes in k8s cluster, calico is also CNI plugins only.

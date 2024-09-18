@@ -16,7 +16,10 @@ spec:
                 name: nginx-svc
                 port:
                   number: 80
-
+  # tls:
+  #   - hosts:
+  #       - example.com
+  #     secretName: testsecret-tls
 # here it will send traffic from external ip (NodePort) or LoadBalancer (lb dns) to backend service.
 # if we dont provide / as rediret then ip:port/demo traffic will go to nginx-svc/demo
 #to redirect to naginx-svc/ only set redirect rule 
