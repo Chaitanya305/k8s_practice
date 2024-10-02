@@ -1,0 +1,22 @@
+mkdir charts
+cd charts/
+helm create demo-nginx
+cd ..
+helm lint charts/demo-nginx/
+echo -e “User-Agent: *\nDisallow: /” > robots.txt
+step 4 :- helm package charts/demo-nginx/
+step-5 ->  Helm repo index --url https://Chaitanya305.github.io/helm-demo/ .
+
+steps6:- git push step
+git add .
+git commit -m "added fiels"
+git push 
+
+in github go to settings --> pages --> select branch --> save 
+
+
+Note: If you make any further changes in the Helm chart, you must regenerate the index.yaml file and the .tgz file 
+with the latest changes as mentioned in Steps 4 ,5 and 6. 
+
+
+https://Digital-Back-Office.github.io/dataflow-helm-repo
