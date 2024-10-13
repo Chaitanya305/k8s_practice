@@ -1,0 +1,43 @@
+when all resoiurce created through terraform use below command to create efs File system
+
+vpc_id=$(aws eks describe-cluster \
+    --name my-cluster \
+    --query "cluster.resourcesVpcConfig.vpcId" \
+    --output text)
+
+provide our cluster name
+
+cidr_range=$(aws ec2 describe-vpcs \
+    --vpc-ids $vpc_id \
+    --query "Vpcs[].CidrBlock" \
+    --output text \
+    --region region-code)
+
+provide our region where cluster is created
+
+file_system_id=$(aws efs create-file-system \
+    --region region-code \
+    --performance-mode generalPurpose \
+    --query 'FileSystemId' \
+    --output text)
+
+provide our region where cluster is created
+
+kubectl get nodes
+
+aws ec2 describe-subnets \
+    --filters "Name=vpc-id,Values=$vpc_id" \
+    --query 'Subnets[*].{SubnetId: SubnetId,AvailabilityZone: AvailabilityZone,CidrBlock: CidrBlock}' \
+    --output table
+
+check AZ of our node as ip address get in k get nodes command
+
+aws efs create-mount-target \
+    --file-system-id $file_system_id \
+    --subnet-id subnet-EXAMPLEe2ba886490 \
+    --security-groups $security_group_id
+
+above provide subnet-id of node for which moun target need to be created
+security group provide same which us attahc to out cluster vpc or node groups it has by defaylt all traffic inbound rule allowed
+
+do this above one only mount target creation command repeat for all nodes you have. otherwise pod on that node will faile beocuse of not having mount target for that AZ where you node is present

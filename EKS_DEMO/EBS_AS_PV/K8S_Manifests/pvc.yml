@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ebs-pvc
+spec:
+  storageClassName: ebs-sc
+  accessModes:
+    - ReadWriteOnce   #for aws we cant use ReadWriteMany becouse we cant have same EBS volume attached to multiple nodes
+  resources:
+    requests:
+      storage: 1Gi

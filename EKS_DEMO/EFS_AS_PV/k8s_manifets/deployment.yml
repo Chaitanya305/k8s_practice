@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      affinity:
+        podAntiAffinity:   # pods to schedule aparts
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100    #how much wightage it should try to prefer.
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                  - key: app
+                    operator: In
+                    values:       # labels value of pods that should shcedule on differant nodes
+                    - nginx
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: demo-vm
+              mountPath: /home
+      volumes:
+        - name: demo-vm
+          persistentVolumeClaim:
+            claimName: efs-pvc
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-svc
+spec:
+  selector:
+    app: nginx
+  ports:
+    - port: 80
+      targetPort: 80

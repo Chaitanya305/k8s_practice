@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aws-cli
+  labels:
+    app: aws-cli
+spec:
+  selector:
+    matchLabels:
+      app: aws-cli
+  template:
+    metadata:
+      labels:
+        app: aws-cli
+    spec:
+      serviceAccountName: demo-sa
+      containers:
+        - name: aws-cli
+          image: amazon/aws-cli
+          command: ["aws", "s3", "ls"]
