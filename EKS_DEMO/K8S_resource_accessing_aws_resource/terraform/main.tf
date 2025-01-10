@@ -24,6 +24,16 @@ data "aws_eks_cluster" "cluster_testing" {
   name = var.eks_cluster_name
 }
 
+data "tls_certificate" "tls" {
+  url = data.aws_eks_cluster.cluster_testing.identity[0].oidc[0].issuer
+}
+
+resource "aws_iam_openid_connect_provider" "oidc-provider" {
+  client_id_list = ["sts.amazonaws.com"]
+  thumbprint_list = [data.tls_certificate.tls.certificates[0].sha1_fingerprint]
+  url = data.aws_eks_cluster.cluster_testing.identity[0].oidc[0].issuer
+}
+
 locals {
   partition          = data.aws_partition.current_testing.id
   account_id         = data.aws_caller_identity.current_testing.account_id
